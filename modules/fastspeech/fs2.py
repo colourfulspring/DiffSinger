@@ -92,7 +92,12 @@ class FastSpeech2(nn.Module):
 
     def forward(self, txt_tokens, mel2ph=None, spk_embed=None,
                 ref_mels=None, f0=None, uv=None, energy=None, skip_decoder=False,
-                spk_embed_dur_id=None, spk_embed_f0_id=None, infer=False, **kwargs):
+                spk_embed_dur_id=None, spk_embed_f0_id=None, infer=False,
+                # ?
+                pitch_midi=None,
+                midi_dur=None,
+                is_slur=None,
+                ):
         ret = {}
         encoder_out = self.encoder(txt_tokens)  # [B, T, C]
         src_nonpadding = (txt_tokens > 0).float()[:, :, None]
@@ -144,7 +149,7 @@ class FastSpeech2(nn.Module):
 
         if skip_decoder:
             return ret
-        ret['mel_out'] = self.run_decoder(decoder_inp, tgt_nonpadding, ret, infer=infer, **kwargs)
+        ret['mel_out'] = self.run_decoder(decoder_inp, tgt_nonpadding)
 
         return ret
 
@@ -230,7 +235,7 @@ class FastSpeech2(nn.Module):
         pitch_embed = self.pitch_embed(pitch)
         return pitch_embed
 
-    def run_decoder(self, decoder_inp, tgt_nonpadding, ret, infer, **kwargs):
+    def run_decoder(self, decoder_inp, tgt_nonpadding):
         x = decoder_inp  # [B, T, H]
         x = self.decoder(x)
         x = self.mel_out(x)

@@ -54,15 +54,20 @@ class FastSpeech2MIDI(FastSpeech2):
 
     def forward(self, txt_tokens, mel2ph=None, spk_embed=None,
                 ref_mels=None, f0=None, uv=None, energy=None, skip_decoder=False,
-                spk_embed_dur_id=None, spk_embed_f0_id=None, infer=False, **kwargs):
+                spk_embed_dur_id=None, spk_embed_f0_id=None, infer=False,
+                # ?
+                pitch_midi=None,
+                midi_dur=None,
+                is_slur=None,
+                ):
         ret = {}
 
-        midi_embedding = self.midi_embed(kwargs['pitch_midi'])
+        midi_embedding = self.midi_embed(pitch_midi)
         midi_dur_embedding, slur_embedding = 0, 0
-        if kwargs.get('midi_dur') is not None:
-            midi_dur_embedding = self.midi_dur_layer(kwargs['midi_dur'][:, :, None])  # [B, T, 1] -> [B, T, H]
-        if kwargs.get('is_slur') is not None:
-            slur_embedding = self.is_slur_embed(kwargs['is_slur'])
+        if midi_dur is not None:
+            midi_dur_embedding = self.midi_dur_layer(midi_dur[:, :, None])  # [B, T, 1] -> [B, T, H]
+        if is_slur is not None:
+            slur_embedding = self.is_slur_embed(is_slur)
         encoder_out = self.encoder(txt_tokens, midi_embedding, midi_dur_embedding, slur_embedding)  # [B, T, C]
         src_nonpadding = (txt_tokens > 0).float()[:, :, None]
 
@@ -113,6 +118,6 @@ class FastSpeech2MIDI(FastSpeech2):
 
         if skip_decoder:
             return ret
-        ret['mel_out'] = self.run_decoder(decoder_inp, tgt_nonpadding, ret, infer=infer, **kwargs)
+        ret['mel_out'] = self.run_decoder(decoder_inp, tgt_nonpadding)
 
         return ret

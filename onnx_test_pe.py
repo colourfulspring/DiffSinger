@@ -113,5 +113,5 @@ if __name__ == '__main__':
     print(f'| save audio: {target}')
     save_wav(out, target, hparams['audio_sample_rate'])
 
-    print(infer_ins.pe)
+    print(infer_ins.model)
     print("OK")

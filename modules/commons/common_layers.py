@@ -103,7 +103,7 @@ class SinusoidalPositionalEmbedding(nn.Module):
         self.register_buffer('_float_tensor', torch.FloatTensor(1))
 
     @staticmethod
-    def get_embedding(num_embeddings, embedding_dim, padding_idx=None):
+    def get_embedding(num_embeddings: int, embedding_dim: int, padding_idx: int):
         """Build sinusoidal embeddings.
 
         This matches the implementation in tensor2tensor, but differs slightly
@@ -117,11 +117,10 @@ class SinusoidalPositionalEmbedding(nn.Module):
         if embedding_dim % 2 == 1:
             # zero pad
             emb = torch.cat([emb, torch.zeros(num_embeddings, 1)], dim=1)
-        if padding_idx is not None:
-            emb[padding_idx, :] = 0
+        emb[padding_idx, :] = 0
         return emb
 
-    def forward(self, input, incremental_state=None, timestep=None, positions=None, **kwargs):
+    def forward(self, input, incremental_state=None, timestep=None, positions=None):
         """Input is expected to be of size [bsz x seqlen]."""
         bsz, seq_len = input.shape[:2]
         max_pos = self.padding_idx + 1 + seq_len
@@ -459,7 +458,6 @@ class MultiheadAttention(nn.Module):
             bias = bias[start:end]
         return F.linear(input, weight, bias)
 
-
     def apply_sparse_mask(self, attn_weights, tgt_len, src_len, bsz):
         return attn_weights
 
@@ -645,7 +643,8 @@ class DecSALayer(nn.Module):
                 key_padding_mask=encoder_padding_mask,
                 incremental_state=incremental_state,
                 static_kv=True,
-                enc_dec_attn_constraint_mask=None, #utils.get_incremental_state(self, incremental_state, 'enc_dec_attn_constraint_mask'),
+                enc_dec_attn_constraint_mask=None,
+                # utils.get_incremental_state(self, incremental_state, 'enc_dec_attn_constraint_mask'),
                 reset_attn_weight=reset_attn_weight
             )
             attn_logits = attn[1]
